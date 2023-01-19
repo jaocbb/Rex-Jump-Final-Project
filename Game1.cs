@@ -13,14 +13,12 @@ namespace Rex_Jump_Final_Project
         private SpriteBatch _spriteBatch;
         Texture2D dinoTexture, introTexture, gameTexture,rockTexture,controlTexture;
         Rectangle dinoRect, introRect,gameRect,rockRect,controlRect;
-        Vector2 dinoSpeed;
-        KeyboardState KeyboardState, prevKeyboardState;
+        Vector2 rockSpeed;
+        KeyboardState KeyboardState, prevKeyboardState, kstate;
         SpriteFont introFont,gameFont,controlFont;
         Screen screen;
-        bool musicPlaying;
-        private KeyboardState _previousKeyboardState;
-        private KeyboardState kstate;
-        Character dino;
+      
+        Character dino,rock;
          
         enum Screen
         {
@@ -44,7 +42,7 @@ namespace Rex_Jump_Final_Project
             _graphics.PreferredBackBufferWidth = 800;
             dinoRect = new Rectangle(20, 315, 150, 50);
             rockRect = new Rectangle(500, 315, 150, 50);
-            dinoSpeed = new Vector2(3, 3);
+            rockSpeed = new Vector2(3, 3);
             introRect = new Rectangle(0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight + 20);
             controlRect = new Rectangle(0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight + 20);
             gameRect = new Rectangle(0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight + 20);
@@ -62,8 +60,9 @@ namespace Rex_Jump_Final_Project
             introTexture = Content.Load<Texture2D>("dinoIntro");
             gameTexture = Content.Load<Texture2D>("GameBackground");
             controlTexture = Content.Load<Texture2D>("controlScreen");
-            dinoSpeed = new Vector2(3, 3);
+            rockSpeed = new Vector2(-3, -3);
             dino = new Character(Content.Load<Texture2D>("Dino final project"), new Vector2(100, 270));
+            rock = new Character(Content.Load<Texture2D>("Newrock"), new Vector2(100, 270));
         }
 
 
@@ -77,15 +76,15 @@ namespace Rex_Jump_Final_Project
            
             if (screen == Screen.Intro)
             {
-                if (musicPlaying == false)
-                {
+                //if (musicPlaying == false)
+                //{
                     //introMusic.Play();
                     // musicPlaying = true;
-                }
+                //}
                 if (KeyboardState.IsKeyDown(Keys.Enter))
                 {
                     screen = Screen.Controls;
-                    //dinoRect.X += (int)dinoSpeed.X;
+                    //rockRect.X += (int)rockSpeed.X;
                     //.Play();
                     //.Play();
 
@@ -103,14 +102,17 @@ namespace Rex_Jump_Final_Project
             else if (screen == Screen.Game)
             {
                 dino.update(gameTime);
-                //dinoRect.X += (int)dinoSpeed.X;//run right
+                rockRect.X += (int)rockSpeed.X;//run right
                 if (KeyboardState.IsKeyDown(Keys.Escape))
                 {
                     Exit();
                 }
 
-            }       
-           
+            }
+            if (rockRect.Right < 0)
+            {
+                rockRect.X = _graphics.PreferredBackBufferWidth;
+            }
         }
         
         

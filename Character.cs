@@ -33,7 +33,7 @@ namespace Rex_Jump_Final_Project
             // Start Jump
             if (Keyboard.GetState().IsKeyDown(Keys.Space) && hasJumped == false)
             {
-                position.Y -= 10f;//shoot up
+                position.Y -= 15f;//shoot up
                 velocity.Y = -5f;
                 hasJumped = true;
             }
