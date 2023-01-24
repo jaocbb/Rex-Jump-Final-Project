@@ -11,20 +11,24 @@ namespace Rex_Jump_Final_Project
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
-        Texture2D dinoTexture, introTexture, gameTexture,rockTexture,controlTexture;
-        Rectangle dinoRect, introRect,gameRect,rockRect,controlRect;
+        Texture2D dinoTexture, introTexture, gameTexture,rockTexture,controlTexture,endTexture;
+        Rectangle introRect,gameRect,rockRect,controlRect,endRect;
         Vector2 rockSpeed;
         KeyboardState KeyboardState, prevKeyboardState, kstate;
-        SpriteFont introFont,gameFont,controlFont;
+        SpriteFont introFont,gameFont,controlFont,endFont,timerFont;
         Screen screen;
-      
-        Character dino,rock;
-         
+        SoundEffect introMusic;
+        float seconds, startTime;
+
+        Character dino;
+        bool musicPlaying;
+       
         enum Screen
         {
             Intro,
             Controls,
             Game,
+            End,
         }
         
         public Game1()
@@ -40,12 +44,13 @@ namespace Rex_Jump_Final_Project
             this.Window.Title = "MonoGame Final Project";
             _graphics.PreferredBackBufferHeight = 500;
             _graphics.PreferredBackBufferWidth = 800;
-            dinoRect = new Rectangle(20, 315, 150, 50);
-            rockRect = new Rectangle(500, 315, 150, 50);
-            rockSpeed = new Vector2(3, 3);
+            //dinoRect = new Rectangle(20, 315, 150, 50);
+            rockRect = new Rectangle(500, 315, 100, 50);
+            rockSpeed = new Vector2(5, 5);
             introRect = new Rectangle(0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight + 20);
             controlRect = new Rectangle(0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight + 20);
             gameRect = new Rectangle(0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight + 20);
+            endRect = new Rectangle(0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight + 20);
             base.Initialize();
         }
 
@@ -57,52 +62,71 @@ namespace Rex_Jump_Final_Project
             introFont = Content.Load<SpriteFont>("IntroFont");
             gameFont = Content.Load<SpriteFont>("File");
             controlFont = Content.Load<SpriteFont>("Controls");
+            endFont = Content.Load<SpriteFont>("endFont");
             introTexture = Content.Load<Texture2D>("dinoIntro");
             gameTexture = Content.Load<Texture2D>("GameBackground");
             controlTexture = Content.Load<Texture2D>("controlScreen");
-            rockSpeed = new Vector2(-3, -3);
+            rockSpeed = new Vector2(-5, -5);
             dino = new Character(Content.Load<Texture2D>("Dino final project"), new Vector2(100, 270));
-            rock = new Character(Content.Load<Texture2D>("Newrock"), new Vector2(100, 270));
+            //rock = new Character(Content.Load<Texture2D>("Newrock"), new Vector2(100, 270));
+            introMusic = Content.Load<SoundEffect>("introMusic");
+            endTexture= Content.Load<Texture2D>("endScreen");
+            timerFont = Content.Load<SpriteFont>("timerFont");
+
         }
 
 
         protected override void Update(GameTime gameTime)
         {
+            seconds = (float)gameTime.TotalGameTime.TotalSeconds - startTime;
             dino.update(gameTime);
             prevKeyboardState = KeyboardState;
             KeyboardState = Keyboard.GetState();
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-           
+            //seconds = (float)gameTime.TotalGameTime.TotalSeconds - startTime;
+            //if (seconds > 10) // Takes a timestamp every 10 seconds.
+                //startTime = (float)gameTime.TotalGameTime.TotalSeconds;
+
+
+
             if (screen == Screen.Intro)
             {
-                //if (musicPlaying == false)
-                //{
-                    //introMusic.Play();
-                    // musicPlaying = true;
-                //}
+                if (musicPlaying == false)
+                {
+                    introMusic.Play();
+                     musicPlaying = true;
+                }
                 if (KeyboardState.IsKeyDown(Keys.Enter))
                 {
                     screen = Screen.Controls;
-                    //rockRect.X += (int)rockSpeed.X;
-                    //.Play();
-                    //.Play();
+                    rockRect.X += (int)rockSpeed.X;
+                    introMusic.Play();
+                    
 
                 }
-                // dino.update(gameTime);
-       
+               
+                
             }
             else if (screen == Screen.Controls)
             {
                 if (KeyboardState.IsKeyDown(Keys.Enter) && prevKeyboardState.IsKeyUp(Keys.Enter))
                 {
                     screen = Screen.Game;
+                    introMusic.Dispose();
                 }
             }
             else if (screen == Screen.Game)
             {
                 dino.update(gameTime);
                 rockRect.X += (int)rockSpeed.X;//run right
+
+                if (dino.Intercects(rockRect))
+                {
+                    screen = Screen.End;
+                }
+                    
+
                 if (KeyboardState.IsKeyDown(Keys.Escape))
                 {
                     Exit();
@@ -113,6 +137,16 @@ namespace Rex_Jump_Final_Project
             {
                 rockRect.X = _graphics.PreferredBackBufferWidth;
             }
+            if (KeyboardState.IsKeyDown(Keys.R))
+            {
+                screen = Screen.Game;
+                seconds = 1;
+
+            }
+            
+
+
+
         }
         
         
@@ -142,8 +176,19 @@ namespace Rex_Jump_Final_Project
                 //_spriteBatch.Draw(dinoTexture, dinoRect, Color.White);
                 dino.Draw(_spriteBatch);
                 _spriteBatch.Draw(rockTexture, rockRect, Color.White);
+                _spriteBatch.DrawString(timerFont, (0 + seconds).ToString("00:00"), new Vector2(100, 100), Color.Black);
+                if (dino.Intercects(rockRect))
+                {
+                    _spriteBatch.Draw(rockTexture, rockRect, Color.White);
+                }
             }
-
+            else if (screen == Screen.End)
+            {
+                _spriteBatch.Draw(endTexture, endRect, Color.White);
+                _spriteBatch.DrawString(endFont, "You died ", new Vector2(350, 50), Color.White);
+                _spriteBatch.DrawString(endFont, "Press R to respawn", new Vector2(100, 100), Color.White);
+                _spriteBatch.DrawString(endFont, "You lasted" + (seconds), new Vector2(400, 100), Color.White);
+            }
 
             _spriteBatch.End();
             base.Draw(gameTime);
