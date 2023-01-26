@@ -107,6 +107,12 @@
 /processorParam:Quality=Best
 /build:introMusic.mp3
 
+#begin Mario Jump.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Mario Jump.wav
+
 #begin Newrock.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -118,6 +124,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Newrock.png
+
+#begin Rock2.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Rock2.png
 
 #begin timerFont.spritefont
 /importer:FontDescriptionImporter

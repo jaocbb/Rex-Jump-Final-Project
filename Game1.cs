@@ -11,18 +11,18 @@ namespace Rex_Jump_Final_Project
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
-        Texture2D dinoTexture, introTexture, gameTexture,rockTexture,controlTexture,endTexture;
-        Rectangle introRect,gameRect,rockRect,controlRect,endRect;
-        Vector2 rockSpeed;
+        Texture2D dinoTexture, introTexture, gameTexture, rockTexture, controlTexture, endTexture, rock2Texture;
+        Rectangle introRect, gameRect, rockRect, controlRect, endRect, rock2Rect;
+        Vector2 rockSpeed, rock2Speed;
         KeyboardState KeyboardState, prevKeyboardState, kstate;
-        SpriteFont introFont,gameFont,controlFont,endFont,timerFont;
+        SpriteFont introFont, gameFont, controlFont, endFont, timerFont;
         Screen screen;
-        SoundEffect introMusic;
+        SoundEffect introMusic,jump;
         float seconds, startTime;
 
         Character dino;
         bool musicPlaying;
-       
+
         enum Screen
         {
             Intro,
@@ -30,7 +30,7 @@ namespace Rex_Jump_Final_Project
             Game,
             End,
         }
-        
+
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -47,6 +47,8 @@ namespace Rex_Jump_Final_Project
             //dinoRect = new Rectangle(20, 315, 150, 50);
             rockRect = new Rectangle(500, 315, 100, 50);
             rockSpeed = new Vector2(5, 5);
+            rock2Rect = new Rectangle(700, 315, 100, 50);
+            rock2Speed = new Vector2(5, 5);
             introRect = new Rectangle(0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight + 20);
             controlRect = new Rectangle(0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight + 20);
             gameRect = new Rectangle(0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight + 20);
@@ -59,6 +61,7 @@ namespace Rex_Jump_Final_Project
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             dinoTexture = Content.Load<Texture2D>("Dino final project");
             rockTexture = Content.Load<Texture2D>("Newrock");
+            rock2Texture = Content.Load<Texture2D>("rock2");
             introFont = Content.Load<SpriteFont>("IntroFont");
             gameFont = Content.Load<SpriteFont>("File");
             controlFont = Content.Load<SpriteFont>("Controls");
@@ -70,43 +73,48 @@ namespace Rex_Jump_Final_Project
             dino = new Character(Content.Load<Texture2D>("Dino final project"), new Vector2(100, 270));
             //rock = new Character(Content.Load<Texture2D>("Newrock"), new Vector2(100, 270));
             introMusic = Content.Load<SoundEffect>("introMusic");
-            endTexture= Content.Load<Texture2D>("endScreen");
+            endTexture = Content.Load<Texture2D>("endScreen");
             timerFont = Content.Load<SpriteFont>("timerFont");
+            jump = Content.Load<SoundEffect>("Mario Jump");
 
         }
 
 
         protected override void Update(GameTime gameTime)
         {
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+                Exit();
             seconds = (float)gameTime.TotalGameTime.TotalSeconds - startTime;
+
             dino.update(gameTime);
             prevKeyboardState = KeyboardState;
             KeyboardState = Keyboard.GetState();
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
-            //seconds = (float)gameTime.TotalGameTime.TotalSeconds - startTime;
-            //if (seconds > 10) // Takes a timestamp every 10 seconds.
-                //startTime = (float)gameTime.TotalGameTime.TotalSeconds;
 
 
+            if (dino.Intercects(rockRect))
+                startTime = (float)gameTime.TotalGameTime.TotalSeconds;
+
+            if (dino.Intercects(rock2Rect))
+                startTime = (float)gameTime.TotalGameTime.TotalSeconds;
 
             if (screen == Screen.Intro)
             {
                 if (musicPlaying == false)
                 {
                     introMusic.Play();
-                     musicPlaying = true;
+                    musicPlaying = true;
                 }
                 if (KeyboardState.IsKeyDown(Keys.Enter))
                 {
                     screen = Screen.Controls;
                     rockRect.X += (int)rockSpeed.X;
+                    rock2Rect.X += (int)rock2Speed.X;
                     introMusic.Play();
-                    
+
 
                 }
-               
-                
+
+
             }
             else if (screen == Screen.Controls)
             {
@@ -120,36 +128,45 @@ namespace Rex_Jump_Final_Project
             {
                 dino.update(gameTime);
                 rockRect.X += (int)rockSpeed.X;//run right
-
+                rock2Rect.X += (int)rock2Speed.X;//run right
                 if (dino.Intercects(rockRect))
                 {
                     screen = Screen.End;
                 }
-                    
+
+                if (rockRect.Right < 0)
+                {
+                    rockRect.X = _graphics.PreferredBackBufferWidth;
+                }
 
                 if (KeyboardState.IsKeyDown(Keys.Escape))
                 {
                     Exit();
                 }
-
+                if (KeyboardState.IsKeyDown(Keys.Enter))
+                {
+                    jump.Play();
+                }
             }
-            if (rockRect.Right < 0)
+            else if (screen == Screen.End)
             {
-                rockRect.X = _graphics.PreferredBackBufferWidth;
-            }
-            if (KeyboardState.IsKeyDown(Keys.R))
-            {
-                screen = Screen.Game;
-                seconds = 1;
+                if (KeyboardState.IsKeyDown(Keys.R))
+                {
+                    screen = Screen.Game;
+                    seconds = 1;
+                    rockRect.X = _graphics.PreferredBackBufferWidth;
 
+                }
             }
             
 
 
 
+
+
         }
-        
-        
+
+
 
 
         protected override void Draw(GameTime gameTime)
@@ -181,13 +198,18 @@ namespace Rex_Jump_Final_Project
                 {
                     _spriteBatch.Draw(rockTexture, rockRect, Color.White);
                 }
+                if (seconds >= 10)
+                {
+                    _spriteBatch.Draw(rock2Texture, rock2Rect, Color.White);
+                }
             }
             else if (screen == Screen.End)
             {
                 _spriteBatch.Draw(endTexture, endRect, Color.White);
                 _spriteBatch.DrawString(endFont, "You died ", new Vector2(350, 50), Color.White);
-                _spriteBatch.DrawString(endFont, "Press R to respawn", new Vector2(100, 100), Color.White);
-                _spriteBatch.DrawString(endFont, "You lasted" + (seconds), new Vector2(400, 100), Color.White);
+                _spriteBatch.DrawString(endFont, "Press R to respawn", new Vector2(50, 200), Color.White);
+                _spriteBatch.DrawString(endFont, "You lasted " + (seconds), new Vector2(400, 100), Color.White);
+
             }
 
             _spriteBatch.End();
